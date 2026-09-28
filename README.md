@@ -40,6 +40,6 @@ The input files are the high-frequency files shared by the field team.
 
 ## 7. Change log
 
-| Date       | Schools Added | 
-|------------|--------|
-| 26-09-26 |  6  |
+| Date       | Schools Added | | Issues Flagged | Actioned | 
+|------------|--------|--------|--------|
+| 26-09-26 |  6  |  Yes  |  6  |
