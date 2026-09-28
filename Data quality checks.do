@@ -7,7 +7,8 @@
 ** CHECKS:
 * 1. Which teachers did not consent, which schools do we need to follow up with?
 * 2. Which stream per standard was randomized?
-
+* 3. What are the statuses of the registries?
+* 4. Photo checks (partly manual)
 *==============================================================================*
 
 qui {
