@@ -11,7 +11,7 @@ The input files are the high-frequency files shared by the field team.
 > This repository does not contain any data. Is a remote file-sharing platform to track latest code versions for Data quality checks.do
 
 
-## Directory structure
+## Internal Directory structure
 
 ```
 ../1. Data
@@ -28,7 +28,7 @@ The input files are the high-frequency files shared by the field team.
 ../2. Dofiles
 ├── MASTER.do                     
 │   ├── Baseline/ 
-│   │   └── Data quality checks.do # <- this is a modular file that creates a new DDMMYY output per update in data
+│   │   └── Data quality checks.do # <- this is a modular file that creates a new DDMMYY output per update in data (this is the only file available in this repo)
 │   └── Monitoring 
 └── README.md
 ```
