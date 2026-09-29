@@ -1,7 +1,7 @@
 # Malawi Attendance Checks
 
 > This is a simple repository which stores the coding file for attendance measurement checks
-The input files are the high-frequency files shared by the field team.
+The input files are the high-frequency files shared by the field team, starting with their cleaned .dta as our input data.
 > There are two output files per date:
 - baseline_attendance_main.dta (clean/main variables)
 - summary_DDMMYYYY.log (A log of any potential issues flagged by CGD team)
