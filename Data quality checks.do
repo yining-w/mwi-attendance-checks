@@ -193,10 +193,10 @@ qui {
 	noi list emis rain_access
 	noi di "Other Issues flagged"
 	noi list emis other_comments if flag == 1
-	*********************************
+	*************************************
 	** 4. Quality of the photos  [x] [n]*
-	*********************************
-	* CHECK with GSC where we want these photos saved
+	** Organize and Rename Photos       *
+	*************************************
 
 	* first check that the EMIS filename saved is consistent with recorded emis
 	* (so that we are recalling the correspondent EMIS photo file)
