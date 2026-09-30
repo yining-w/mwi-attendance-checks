@@ -6,31 +6,19 @@
 *==============================================================================*
 ** CHECKS:
 * 1. Which teachers did not consent, which schools do we need to follow up with?
-* 2. Which stream per standard was randomized? Which of them are in the treatment arm?
-* 3. Issues to flag (registry from last year, or weather related)
-* 4. Quality of photos (manual check)
+* 2. Which stream per standard was randomized?
+* 3. What are the statuses of the registries?
+* 4. Photo checks (partly manual)
 *==============================================================================*
 
 qui {
 	
 	** User change parameters 
-	global dateofanalysis 290926 // update twice a week. Remember that 1110 was the "test" day data.
-	global dateofdata "24sep2026"
-	
-	* User update here after manually checking quality issues
-	local qualityissues "503173: STD2_A-P2 | 505237: STD2*,3*,4" // (290926)
-	//local qualityissues "500233: STD2_A-P2;STD2-A-P3 | 505348: STD3-A-P1" (240926)
+	global date 240926 // update twice a week. Remember that 1110 was the "test" day data.
+	local qualityissues "500233: STD2_A-P2;STD2-A-P3 | 505348: STD3-A-P1" // flag here if any photos could be improved for next time
+	global overwriteimgs = 0 
+	use "$raw\Baseline/$date\baseline_attendance_form", clear
 
-	// flag here if any photos could be improved for next time
-	global overwriteimgs = 0  // turn to 0 if we don't want to over write the folder of images
-	use "$raw\Baseline/$date\data_labelled baseline attandance form.dta", clear // baseline_attendance_form
-	gen emisnumber = emis 
-	merge 1:1 emisnumber using "${ref}/2. Randomization/randomization_schools_2treatments_emis.dta", nogen keep(matched) keepusing(treatment digitization)
-
-	* Keep date of new data
-	** YW: Will add this once we have the next round
-	keep if survey_date >= td(${dateofdata})
-	
 	log using "$raw\Baseline/$date/summary_$date.log", replace
 	// create a dummy for counts 
 	gen dummy = 1
@@ -40,9 +28,10 @@ qui {
 	noi di "How many schools visited in the latest sample"
 	noi tabstat dummy,stat(count) by(survey_date)
 	
-	noi di "Enumerators / EMIS"
-	noi li enumerator emis
-	
+	* Keep date of new data
+	** YW: Will add this once we have the next round
+	//keep if date==   
+
 	*********************************
 	** 1. Headteachers consent     **
 	*********************************
@@ -78,20 +67,6 @@ qui {
 		clonevar std`n'_selected_stream = std`n'_selected
 	}
 
-	** Check that if register is old, it is not selected for randomization 
-	* This means that in any instance where all the available streams are not 'None', 
-	* register_year_[n] should != 2
-	destring std*_has_complete std*_has_partial, replace
-	
-	forval n = 1/4 {
-			noi di ""
-		noi di "- Schools that had completed or partial registries, but the selected stream from Standard `n' was from the previous year:"
-		noi list emis if (std`n'_has_complete > 0 | std`n'_has_partial > 0) & register_year_`n' == 2, compress
-
-		}
-	
-	noi di "Check if assigned treatment and SurveyCTO coding are consistent"
-	noi di emis treatment sms_reminder_status digitization
 	*********************************
 	** 3. Status of the registries **
 	*********************************
@@ -155,7 +130,7 @@ qui {
 
 	noi di "** 2. Randomization **"
 	noi di "Registry statuses of selected streams"
-	noi list emis sms_reminder_status std*_selected_stream std*_selected_status, compress
+	noi list emis std*_selected_stream std*_selected_status, compress
 
 	// Create variable regarding they are using new or old registries. Check the "Other comments" variable to identify this.
 	/* YW - Comments don't mention whether 'last year's register is for the whole school or select classrooms  
@@ -167,36 +142,20 @@ qui {
 	* from the photos based on the date?)
 	*/
 	* For now this is a manual note 'FLAG'
-	//local toflag "505638 500076 505348" // 240926
-	local toflag "503617 501699 503173" // 290926
+	local toflag "505638 505348" // 240926
 
 	gen flag = 0
 	foreach e in `toflag' {
 		replace flag = 1 if emis == `e'
 	}
-	
-	** Which EMISes have old registries
-	gen oldreg = inlist(emis, 505638,500076)
-	gen oldreg_stds = "All" if emis== 505638
-	replace oldreg_stds = "2;3" if emis== 500076 // to confirm
-	
 
-	forval n =1/4 {
-		replace oldreg = 1 if register_year_`n'==2
-		replace oldreg_stds = "`n'" if register_year_`n'==2 & oldreg_stds == ""
-		replace oldreg_stds = oldreg_stds + ";" + "`n'" if register_year_`n'==2 & oldreg_stds != ""
-
-	}
-	
 	noi di "** 3. Schools to flag for later **"	
-	noi di "Issues related to weather conditions"
-	noi list emis rain_access
-	noi di "Other Issues flagged"
+	noi di "Issues include weather conditions for monitoring or registry quality"
 	noi list emis other_comments if flag == 1
-	*************************************
+	*********************************
 	** 4. Quality of the photos  [x] [n]*
-	** Organize and Rename Photos       *
-	*************************************
+	*********************************
+	* CHECK with GSC where we want these photos saved
 
 	* first check that the EMIS filename saved is consistent with recorded emis
 	* (so that we are recalling the correspondent EMIS photo file)
@@ -278,16 +237,6 @@ qui {
 		}
 	}
 	
-	* Erase the registries that were not collected in this round
-	local files : dir "`tempdir'/media" files "*.jpg" // YW: For next check, check that images files are still consistently saved as .png
-	di `"`files'"'
-	local files2del : dir "`tempdir'/media_renamed" files "*.jpg" // YW: For next check, check that images files are still consistently saved as .jpg
-
-	* Delete any old copies 
-	cap foreach f in `files2del' {
-		erase "`tempdir'/media_renamed/`f'"
-	}
-	
 	local tempdir "${raw}/Baseline/${date}/register_scans"
 
 	* Now move to each EMIS folder 
@@ -303,7 +252,7 @@ qui {
 	** 5. Keep key variables       **
 	*********************************
 	gen dateclean = ${date}
-	local keepvars "survey_date emis district zone sms_reminder_status ht_consent respondent_role respondent_role_other num_std* std*_selected_status std*_other_status *selected_stream* flag other_comments photo_taken_* school_gps* oldreg oldreg_stds dateclean"
+	local keepvars "survey_date emis district zone sms_reminder_status ht_consent respondent_role respondent_role_other num_std* std*_selected_status std*_other_status *selected_stream* flag other_comments photo_taken_* school_gps* "
 	keep `keepvars'
 	order `keepvars'
 
@@ -318,7 +267,7 @@ qui {
 	lab var flag "Manual flag for checks"
 	lab var dateclean "Date data was saved"
 	
-	save "$raw\Baseline/$date\baseline_attendance_CLEAN", replace
+	save "$raw\Baseline/$date\baseline_attendance_main", replace
 	}
 } // end qui
 
